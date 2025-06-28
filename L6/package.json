@@ -1,0 +1,19 @@
+{
+  "name": "saitama",
+  "version": "1.0.0",
+  "description": "backend advance",
+  "keywords": [
+    "backend",
+    "node"
+  ],
+  "license": "ISC",
+  "author": "Mr raturi",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon run src/index.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
