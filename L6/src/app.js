@@ -11,6 +11,15 @@ app.use(cors({
     credentials: true
 }))
 
+// import routes 
+import userRouter from "./routes/user.routes.js"
+
+// declare route
+app.use("/api/v1/users", userRouter);
+
+
+// at production grade the routes look something like this: http://localhost:8000//api/v1/users/.....
+
 
 export {app}
 

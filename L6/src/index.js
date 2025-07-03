@@ -1,9 +1,19 @@
+import dotenv from "dotenv"
+// dotenv.config({ 
+//     path: './.env' // When we do npm run dev dotenv.config looks for file from the root. 
+// });
+dotenv.config(); // gotta put dotenv setup at the top to avoid reference error. 
+
+//So either you write the above import and config or make changes in the script, "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js" 
+
 import mongoose, { mongo } from "mongoose";
-import { DB_NAME } from "./constants";
-import connectDB from "./db";
-import { app } from "./app";
+import { DB_NAME } from "./constants.js";
+import { app } from "./app.js";
+import connectDB from "./db/index.js";
 
 const PORT = process.env.PORT || 5000;
+
+// console.log("MongoDb url ",process.env.MONGODB_URI); for debugging. 
 
 connectDB()
 .then(()=> {app.listen(PORT, ()=> {
