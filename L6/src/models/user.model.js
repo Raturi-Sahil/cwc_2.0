@@ -13,11 +13,12 @@ const userSchema = new Schema({
     refreshToken: {type: String}
 }, {timestamps: true}); 
 
-userSchema.pre("save", function(next){
+userSchema.pre("save", async function(next){
     if(!this.isModified("password")) return next(); 
     // if we don't check whether password is modified or not, then we would end up updating the password eveytime something is saved in the database even if it's some other filed and not password.
 
-    this.password = bcrypt.hash(this.password, 10);// 10 is the number of rounds. 
+    this.password = await bcrypt.hash(this.password, 10);// 10 is the number of rounds.
+    next(); 
 });
 
 userSchema.methods.isPasswordCorrect = async function (password) {
@@ -53,4 +54,4 @@ userSchema.methods.generateRefreshToken = function() { // No need to write async
 }
 
 
-export const User = mongoose.model("User", userSchema);s
+export const User = mongoose.model("User", userSchema);

@@ -11,6 +11,8 @@ app.use(cors({
     credentials: true
 }))
 
+app.use(express.json());
+
 // import routes 
 import userRouter from "./routes/user.routes.js"
 
