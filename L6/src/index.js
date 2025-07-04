@@ -6,8 +6,9 @@ dotenv.config(); // gotta put dotenv setup at the top to avoid reference error.
 
 //So either you write the above import and config or make changes in the script, "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js" 
 
-import mongoose, { mongo } from "mongoose";
-import { DB_NAME } from "./constants.js";
+// no ues of these two lines in this file.
+// import mongoose from "mongoose";  
+// import { DB_NAME } from "./constants.js";
 import { app } from "./app.js";
 import connectDB from "./db/index.js";
 

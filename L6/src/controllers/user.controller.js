@@ -5,8 +5,11 @@ import { User } from "../models/user.model.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 const registerUser = asyncHandler(async(req, res) => {
+    // destructure inputs
    const { username, email, fullName, password } = req.body;
    
+
+   //But here my question is if below when creating a user we are converting the username into lowercase then how are we comparing here without converting the username to lowercase again. ?
    // To check if any of the input fields is empty.
    if([username, email, fullName, password].some(field => {
     field?.trim() === ""
@@ -15,7 +18,7 @@ const registerUser = asyncHandler(async(req, res) => {
    }
 
    //To check if the username and email already exists. 
-   const existingUser = username.findOne( {
+   const existingUser = User.findOne( {
         $or: [{username}, {email}]
 
         // rather than doing res.status().json({}) we are just using the helper class we have created, where we use it's object and just show the erorr to the user.
@@ -53,7 +56,8 @@ const registerUser = asyncHandler(async(req, res) => {
     if(!createdUser) {
         throw new ApiError(500, "Internal server error, something went wrong while registering the user");
     }
-
+    
+    // This 201 is for postman, cuz postman expects status from .status.
     return res.status(201).json(
         new ApiResponse(200, createdUser, "User registered Successfully")
     )
