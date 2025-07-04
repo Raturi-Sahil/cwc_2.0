@@ -1,8 +1,9 @@
-import dotenv from "dotenv"
-// dotenv.config({ 
-//     path: './.env' // When we do npm run dev dotenv.config looks for file from the root. 
-// });
-dotenv.config(); // gotta put dotenv setup at the top to avoid reference error. 
+// i had to switch to putting dotenv config in scripts cuz without that cloudinary upload was causing some errors, my env varialbes were loading after cloudinary was loaded and configured with undefined env values. 
+// import dotenv from "dotenv" 
+// // dotenv.config({ 
+// //     path: './.env' // When we do npm run dev dotenv.config looks for file from the root. 
+// // });
+// dotenv.config(); // gotta put dotenv setup at the top to avoid reference error. 
 
 //So either you write the above import and config or make changes in the script, "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js" 
 

@@ -5,6 +5,10 @@ import { User } from "../models/user.model.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 const registerUser = asyncHandler(async(req, res) => {
+
+    console.log(req.body); // multer populates the req.body with all the text data in the input. 
+    console.log(req.files);// multer populates the req.files with the files data. 
+
     // destructure inputs
    const { username, email, fullName, password } = req.body;
    
@@ -18,7 +22,7 @@ const registerUser = asyncHandler(async(req, res) => {
    }
 
    //To check if the username and email already exists. 
-   const existingUser = User.findOne( {
+   const existingUser = await User.findOne( {
         $or: [{username}, {email}]
 
         // rather than doing res.status().json({}) we are just using the helper class we have created, where we use it's object and just show the erorr to the user.
@@ -27,16 +31,19 @@ const registerUser = asyncHandler(async(req, res) => {
     if(existingUser) {
         throw new ApiError(409, "Username or email already exists");
     }
-
+    console.log(req.files?.avatar[0]);
+    console.log(req.files?.coverImage?.[0]);
     const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    const coverImageLocalPath = req.files?.coverImage?.[0]?.path || null;//it even works for the case when we don't provide the coverImage key-value pair in req.
 
     if(!avatarLocalPath) {
         throw new ApiError(400, "Avatar file is required");
     }
-
+    console.log(avatarLocalPath);
     const avatar = await uploadOnCloudinary(avatarLocalPath);
     const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+
+    console.log(avatar);
 
     if(!avatar) {
         throw new ApiError(409, "Avatar file coudn't be uploaded, Internal server error");

@@ -3,9 +3,9 @@ import fs from "fs";
 
 
 cloudinary.config({ 
-        cloud_name: process.env.cloud_name, 
-        api_key: process.env.api_key, 
-        api_secret: process.env.api_secret // Click 'View API Keys' above to copy your API secret
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
+        api_key: process.env.CLOUDINARY_API_KEY, 
+        api_secret: process.env.CLOUDINARY_API_SECRET // Click 'View API Keys' above to copy your API secret
 });
 
 
@@ -14,16 +14,20 @@ cloudinary.config({
 const uploadOnCloudinary = async (localFilePath) => {
     
     try {
+        
         if(!localFilePath) return null;// if the file path doesn't exist you can return simply.
 
         // if the path does exist
+        
         const response = await cloudinary.uploader.upload(localFilePath, {
             resource_type: "auto"
         });
         // file has been uploaded successfully
         console.log("File has been uploaded successfully on cloudinary", response.url);
+        fs.unlinkSync(localFilePath);
         return response;
     }catch(error) {
+        console.log("cloudinary upload failed", error);
         fs.unlinkSync(localFilePath);
         // Remove the file locally as the upload operation failed. 
         return null;
