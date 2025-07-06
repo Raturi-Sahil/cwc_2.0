@@ -4,6 +4,23 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { User } from "../models/user.model.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 
+
+const generateAccessAndRefreshToken = async (userid) => {
+    try {
+        const user = await User.findById(userid);
+        const accessToken = user.generateAccessToken();
+        const refreshToken = user.generateRefreshToken();
+
+        user.refreshToken = refreshToken;
+        await user.save({validateBeforeSave: false});
+
+        return {accessToken, refreshToken};
+
+    } catch (error) {
+        throw new ApiError(500, "Some error occured while generating aceess and refresh token");
+    }
+}
+
 const registerUser = asyncHandler(async(req, res) => {
 
     console.log(req.body); // multer populates the req.body with all the text data in the input. 
@@ -70,4 +87,87 @@ const registerUser = asyncHandler(async(req, res) => {
     )
 })
 
-export { registerUser }
+const loginUser = asyncHandler(async(req, res) => {
+    // destructuring the input.
+    const { email, username, password } = req.body;
+
+    // // Check if any input field is invalid. 
+    // if([email, username, password].some(find => {
+    //     find?.trim() == "" // will evaluate to either true or false. 
+    // })) {
+    //     throw new ApiError(400, "All fields are required.");
+    // }
+
+    // see here we are just trying to see how to handle both email or username at once. If you want you can predefine what would be used for login. 
+    if(!username || !email) {
+        throw new ApiError(400, "Username or email is required");
+    }
+
+    // so this is how we check for both
+    const existingUser = await User.findOne({$or : [{username}, {email}]});// i forgot to put await here. 
+    /* const correctPassword = await existingUser.isPasswordCorrect(password); // the methods that we create inside the schema are accessed using instance of that model.  
+
+    // if(!existingUser ||  !correctPassword) {
+    //     throw new ApiError(400, "Invalid credentials");
+    } */
+   // The above logic might lead to runtime error given that if user doesn't exist means user = null and inside the isPasswordCorrect we do this.password, which is equal to doing null.password and will cause crash. Therefore gotta check them seperately.
+
+    if(!existingUser) {
+        throw new ApiError(400, "Invalid credentials");
+    }
+
+    const isPasswordValid = existingUser.isPasswordCorrect(password);
+
+    if(!isPasswordValid) {
+        throw new ApiError(401, "Invalid credentials"); 
+    }
+
+    // // update the accessToken and refreshToken field. 
+    // existingUser.accessToken = existingUser.generateAccessToken;
+    // existingUser.refreshToken = existingUser.generateRefreshToken;
+    // const response = await existingUser.save();
+    // here make sure u await on this function. Understanding the async nature of js is really important, if there is a possiblity that an operation might take some time then simply await on it. 
+
+
+    // creating access and refresh token in a smart way. 
+    const {accessToken, refreshToken} = await generateAccessAndRefreshToken(existingUser._id);
+
+    // modifying the existingUser, so that we can send it back in response. 
+    const LoggedInUser = await User.findById(user._id).select("-password -refreshToken");
+
+    // options to secure our cookies.
+    const options = {
+        httponly: true,
+        secure: true
+    }
+
+    return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+        new ApiResponse(
+            200, 
+            {
+                user: LoggedInUser,
+                accessToken,
+                refreshToken
+            },
+            "User logged in Successfully"
+        ) // no semicolon here
+
+        /**
+         *          ✅ The expression itself should not be terminated early by a semicolon.
+
+                    👉 The semicolon goes after the full return or statement, like:
+
+                    const x = new ApiResponse(...);  // good
+                    return res.json(new ApiResponse(...));  // good
+                    but not inside function arguments:
+                    json(new ApiResponse(...); );  // ❌ syntax error
+         */
+    );
+
+});
+
+export { loginUser, registerUser }
