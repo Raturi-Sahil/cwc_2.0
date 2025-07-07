@@ -1,5 +1,5 @@
 const asyncHandler = fn => (req, res, next) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+    Promise.resolve(fn(req, res, next)).catch(next);// Here gpt says i also have to provide an error handler for this, express doens't automatically do it. 
 }
 
 export {asyncHandler}
@@ -7,7 +7,7 @@ export {asyncHandler}
  * Refer to CWB8 for more info
  * 
  * 
- * This is similar to the function above
+ * This is similar to the function aboved
  * const asyncHandler = (fn) => {
  *      return function(req, res, next) {
  *          return Promise.resolve(fn(req, res, next)).catch(next);

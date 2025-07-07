@@ -43,7 +43,7 @@ userSchema.methods.generateAccessToken = function() { // No need to write async 
 userSchema.methods.generateRefreshToken = function() { // No need to write async await cuz this .sign function is fast.  
     return jwt.sign(
         {
-            _id: this._id, // refresh toke doesn't contain all that much info in it, it keeps on getting refreshed.
+            _id: this._id, // refresh toke doesn't contain all that much info in it.
 
         }, 
         process.env.REFRESH_TOKEN_SECRET,

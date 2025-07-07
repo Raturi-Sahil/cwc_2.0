@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { registerUser } from "../controllers/user.controller.js";
+import { loginUser, logoutUser, registerUser } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js"
+import { verifyJWT } from "../middlewares/auth.middlewares.js";
 
 const router = Router(); // creating a router variable, which will have all functionlity of router. 
 
@@ -13,6 +14,16 @@ router.route("/register").post(
     ]),   
     registerUser
 )
+
+router.route("/login").post(
+    loginUser
+);
+
+// sercured routes: After registration and login, any endpoint the user hits, will first haveto go through the auth middleware, where the jwt token will be verified, before the req reaches the middleware. 
+router.route("/logout").post(
+    verifyJWT,
+    logoutUser
+);
 
 export default router;
 

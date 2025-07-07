@@ -170,4 +170,42 @@ const loginUser = asyncHandler(async(req, res) => {
 
 });
 
-export { loginUser, registerUser }
+const logoutUser =  asyncHandler(async(req, res) => {
+    
+    // first get the userId
+    // const user = req.user;
+
+    // //Remove the refresh token
+    // user.accessToken = "";
+
+    await User.findByIdAndDelete(
+        req.user._id,
+         {
+            $set: {
+                refreshToken: undefined // setting refreshToken to undefined. 
+            }
+        },
+        {
+            new: true // will return the updated user, if we try to store the repose that is. 
+        }
+    )
+
+
+    // options to secure our cookies.
+    const options = {
+        httponly: true,
+        secure: true
+    }
+
+    //response to user
+    return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(
+         new ApiResponse(201, {}, "User successfully logged out")
+    );
+
+});
+
+export { logoutUser, loginUser, registerUser }
