@@ -1,14 +1,14 @@
-import { asyncHandler } from "../utils/asyncHandler";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
-import { ApiError } from "../utils/ApiError";
-import { User } from "../models/user.model";
+import { ApiError } from "../utils/ApiError.js";
+import { User } from "../models/user.model.js";
 
 
 export const verifyJWT = asyncHandler(async (req, res, next) => {
     
 try {
         //first extract the jwt/access token from the req.
-        const accessToken = req.cookies?.accessToken || req.headers("Authorization")?.replace("Bearer ", "");
+        const accessToken = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
     
         //if the accessToken doesn't exist then return 
         if(!accessToken)
@@ -33,4 +33,4 @@ try {
         throw new ApiError(401, error?.message || "Invalid access token");
 }
 
-});
+});     
