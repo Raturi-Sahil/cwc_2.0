@@ -307,8 +307,8 @@ const getcurrentUser = asyncHandler(async (req, res) => {
 const updateAccountDetails = asyncHandler(async (req, res) => {
     const { username, email } = req.body;
 
-    if(!username && !email){
-        throw new ApiError(401, "Input fields are required");
+    if(!username || !email){
+        throw new ApiError(401, "All input fields are required");
     }
 
     const user = await User.findByIdAndUpdate(
@@ -388,6 +388,9 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         {new : true}
     ).select("-password -refreshToken");
 
+
+    // here we can create and use a utility funciton that delete the previously uploaded image on cloudinary. for this we gotta hold the cloud url of the old image in some variable.
+
     return res
     .status(200)
     .json(
@@ -436,4 +439,4 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 
 });
 
-export { updateUserCoverImage, updateUserAvatar, updateAccountDetails, getcurrentUser, changeCurrentPassword, refreshAccessToken, logoutUser, loginUser, registerUser }
+export { updateUserCoverImage, updateUserAvatar, updateAccountDetails, getcurrentUser, changeCurrentPassword, refreshAccessToken, logoutUser, loginUser, registerUser } 
