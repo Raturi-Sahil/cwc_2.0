@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { loginUser, logoutUser, refreshAccessToken, registerUser } from "../controllers/user.controller.js";
+import { changeCurrentPassword, getcurrentUser, loginUser, logoutUser, refreshAccessToken, registerUser, updateAccountDetails, updateUserAvatar } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middlewares.js";
 
@@ -26,6 +26,18 @@ router.route("/logout").post(
 );
 
 router.route("/refresh-token").post(refreshAccessToken);
+
+router.route("/changepassword").post(changeCurrentPassword);
+
+router.route("/getuser").post(getcurrentUser);
+
+router.route("/updateaccountdetails").post(updateAccountDetails);
+
+router.route("/uploadavatar").post(
+    upload.single("avatar"), // since we only expect 1 file so we can just use this.
+    verifyJWT,
+    updateUserAvatar
+);
 
 export default router;
 

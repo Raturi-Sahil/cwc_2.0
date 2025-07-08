@@ -3,7 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { User } from "../models/user.model.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
-import jwt, { decode } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshToken = async (userid) => {
     try {
@@ -48,6 +48,7 @@ const registerUser = asyncHandler(async(req, res) => {
     if(existingUser) {
         throw new ApiError(409, "Username or email already exists");
     }
+
     console.log(req.files?.avatar[0]);
     console.log(req.files?.coverImage?.[0]);
     const avatarLocalPath = req.files?.avatar[0]?.path;
@@ -258,4 +259,181 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 });
 
-export { refreshAccessToken, logoutUser, loginUser, registerUser }
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+    
+    //first extract the old and new passwords
+    const { oldPassword, newPassword } = req.body;
+
+    /**
+     * if user were to provide the confirm password as well then just destructure the confirmPassword above 
+     * and then if new and confirm passwords are not same return an ApiError early
+     */
+
+    //Get the user id
+    const user = await User.findById(req.user?._id);
+
+    //Check if the old passowrd is matching
+    const isPasswordCorrect = await user.isPasswordCorrect(user.password);
+
+    // if the password match fails then throw an error
+    if(!isPasswordCorrect) {
+        throw new ApiError(401, "Invalid old password");
+    }
+
+    user.password = newPassword;
+    await user.save({validateBeforeSave: false});
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            {},
+            "Password changed successfully"
+        )
+    );
+
+});
+
+const getcurrentUser = asyncHandler(async (req, res) => {
+    return res
+    .status(200)
+    // .json(200, req.user, "current user fetched successfully"); this is incorrect cuz json only accepts one argument
+    .json(
+        new ApiResponse(200, req.user, "Current user fetched successfully")
+    )
+});
+
+const updateAccountDetails = asyncHandler(async (req, res) => {
+    const { username, email } = req.body;
+
+    if(!username && !email){
+        throw new ApiError(401, "Input fields are required");
+    }
+
+    const user = await User.findByIdAndUpdate(
+        user._id,
+        {$set: {username, email}},
+        {new: true}
+    ).select("-password");
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200, 
+            user,
+            "User details updated successfully"
+        )
+    );
+
+});
+
+// Just for fun.
+// const updateUserInfo = asyncHandler(async (req, res) => {
+//         const updates = Object.keys(req.body);
+
+//         if(!updates) {
+//             throw new ApiError(401, "Invalid request");
+//         }
+
+//         const allowedUpdates = ["username", "email", "fullName"];
+
+//         const isValid = updates.every(key => allowedUpdates.includes(key));
+
+//         if(!isValid) {
+//             new ApiResponse(401, "Invlid update request");
+//         }
+
+//         // extract the user
+//         const user = await User.findById(req.user?._id);
+//         // update the user info
+//         updates.forEach(field => {
+//             user[field] = req.body[field]
+//         });
+
+//         const updatedUserInfo = await User.findById(req.user?._id).select("-password -refreshToken");
+
+
+//         return res
+//         .status(200)
+//         .json(
+//             new ApiResponse(200, updatedUserInfo, "User info updated successfully")
+//         );
+// });
+
+
+// only updates user Avatar
+const updateUserAvatar = asyncHandler(async (req, res) => {
+
+    // Here don't just blindly take .files, take file cuz earlier is register route we needed to upload both avatar and cover.
+    const avatarLocalPath = req.file?.avatar[0]?.path;
+    // we can even save this file directly in the database, but as per industry standard we don't do it this way, rather we use 3rd party services for this.
+
+    if(!avatarLocalPath) {
+        throw new ApiError(401, "Avatar file is missing");
+    }
+    
+    const avatar = await uploadOnCloudinary(avatarLocalPath);
+
+    if(!avatar.url) {
+        throw new ApiError(500, "Internal server error, Error while uploading on cloudinary"); // Here by writing a very specifc error message i can debug it easily later on.
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {avatar: avatar.url}
+        },
+        {new : true}
+    ).select("-password -refreshToken");
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200, 
+            user,
+            "Avatar updated successfully"
+        )
+    );
+
+});
+
+const updateUserCoverImage = asyncHandler(async (req, res) => {
+
+    // Here don't just blindly take .files, take file cuz earlier is register route we needed to upload both avatar and cover.
+    const coverImageLocalPath = req.file?.coverImage[0]?.path;
+    // we can even save this file directly in the database, but as per industry standard we don't do it this way, rather we use 3rd party services for this.
+
+    if(!coverImageLocalPath) {
+        throw new ApiError(401, "CoverImage file is missing");
+    }
+    
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+
+    if(!coverImage.url) {
+        throw new ApiError(500, "Internal server error, Error while uploading on cloudinary"); // Here by writing a very specifc error message i can debug it easily later on.
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {coverImage: coverImage.url}
+        },
+        {new : true}
+    ).select("-password -refreshToken");
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200, 
+            user,
+            "CoverImage updated successfully"
+        )
+    );
+
+});
+
+export { updateUserCoverImage, updateUserAvatar, updateAccountDetails, getcurrentUser, changeCurrentPassword, refreshAccessToken, logoutUser, loginUser, registerUser }
