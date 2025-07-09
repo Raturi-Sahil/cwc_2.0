@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { changeCurrentPassword, getcurrentUser, loginUser, logoutUser, refreshAccessToken, registerUser, updateAccountDetails, updateUserAvatar } from "../controllers/user.controller.js";
+import { changeCurrentPassword, getcurrentUser, getUserChannelProfile, getWatchHistory, loginUser, logoutUser, refreshAccessToken, registerUser, updateAccountDetails, updateUserAvatar, updateUserCoverImage } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middlewares.js";
 
@@ -27,17 +27,27 @@ router.route("/logout").post(
 
 router.route("/refresh-token").post(refreshAccessToken);
 
-router.route("/changepassword").post(changeCurrentPassword);
+router.route("/change-password").patch(changeCurrentPassword);
 
-router.route("/getuser").post(getcurrentUser);
+router.route("/current-user").get(getcurrentUser);
 
-router.route("/updateaccountdetails").post(updateAccountDetails);
+router.route("/update-account").patch(updateAccountDetails);
 
-router.route("/uploadavatar").post(
+router.route("/avatar").patch(
     upload.single("avatar"), // since we only expect 1 file so we can just use this.
     verifyJWT,
     updateUserAvatar
 );
+
+router.route("/cover-image").patch(
+    upload.single("coverImage"),
+    verifyJWT,
+    updateUserCoverImage
+);
+
+router.route("/c/:username").get(verifyJWT, getUserChannelProfile);
+
+router.route("/history").get(verifyJWT, getWatchHistory);
 
 export default router;
 

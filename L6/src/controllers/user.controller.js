@@ -522,7 +522,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     )
 });
 
-const getUserHistory = asyncHandler(async (req, res) => {
+const getWatchHistory = asyncHandler(async (req, res) => {
     const user = await User.aggregate([
         {
             $match: {
@@ -575,4 +575,4 @@ const getUserHistory = asyncHandler(async (req, res) => {
     )
 });
 
-export { getUserHistory, getUserChannelProfile, updateUserCoverImage, updateUserAvatar, updateAccountDetails, getcurrentUser, changeCurrentPassword, refreshAccessToken, logoutUser, loginUser, registerUser } 
+export { getWatchHistory, getUserChannelProfile, updateUserCoverImage, updateUserAvatar, updateAccountDetails, getcurrentUser, changeCurrentPassword, refreshAccessToken, logoutUser, loginUser, registerUser } 
