@@ -439,4 +439,84 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 
 });
 
-export { updateUserCoverImage, updateUserAvatar, updateAccountDetails, getcurrentUser, changeCurrentPassword, refreshAccessToken, logoutUser, loginUser, registerUser } 
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+
+    //fetch the username of the channel from the url 
+    const { username } = req.params;
+
+    if(!username?.trim()) {
+        throw new ApiError(400, "Username is missing");
+    }
+
+    const channel = await User.aggregate([
+        {
+            $match: { // At stage 1, using match we first get the document of the user with usernmae which we fetched earlier.
+                username: username?.toLowerCase()
+            }
+        },
+        {   /* At stage 2, we fetch all the docs from the subscriptions model where the channel field is this user's id.
+             so we made the query to lookup from (in) the subscriptions model ( local filed shows the field is called in User's model, whereas foreignFeild is what the field is called in the subscriptions model, the result we get would be called as subscribers. With all this we can get all the docs of subscription model where the subscriber is subscribed to the channel with this particular used id. I mean to get the subscribers.
+            */
+            $lookup: { 
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "channels",
+                as: "subscribers"
+            }
+        },
+        { /* same logic as above lookup, but this time we are trying to get how many channels this current userid has subscribed to, so that we can send it in response to be rendered on the FE. */
+            $lookup: {
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "subscribers",
+                as: "subscribedTo"
+            }
+        },
+        {
+            subscribersCount: {
+                $size: "$subscribers"
+            },
+            channelsSubscribedToCount: {
+                $size: "$subscribedTo"
+            },
+            isSubscribed: {
+                $cond: {
+                    if: {$in: [req.user?._id, "$subscribers.subscriber"]},
+                    then: true,
+                    else: false
+                }
+            }
+        },
+        {
+            $project: {
+                fullName: 1,
+                username: 1,
+                subscribersCount: 1,
+                channelsSubscribedToCount: 1,
+                isSubscribed: 1,
+                avatar: 1,
+                coverImage: 1,
+                email: 1,
+            }
+        }
+    ]);
+
+    console.log(channel);
+
+    if(!channel?.length) {
+        throw new ApiError(400, "Channel doesn't exist")
+    }
+
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            channel,
+            "User channel fetched successfully"
+        )
+    )
+})
+
+export { getUserChannelProfile, updateUserCoverImage, updateUserAvatar, updateAccountDetails, getcurrentUser, changeCurrentPassword, refreshAccessToken, logoutUser, loginUser, registerUser } 
