@@ -33,9 +33,7 @@ const registerUser = asyncHandler(async(req, res) => {
 
    //But here my question is if below when creating a user we are converting the username into lowercase then how are we comparing here without converting the username to lowercase again. ?
    // To check if any of the input fields is empty.
-   if([username, email, fullName, password].some(field => {
-    field?.trim() === ""
-   })) {
+   if([username, email, fullName, password].some(field => field?.trim() === "")) {
         throw new ApiError(400, "All inputs fields are required");
    }
 
@@ -237,7 +235,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
           throw new ApiError(401, "Refresh token is exprired or used");
       }
   
-      const { accessToken, refreshToken } = generateAccessAndRefreshToken(user._id);
+      const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id); // gotta await on it
   
       const options = {
           httpOnly: true,
@@ -274,7 +272,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user?._id);
 
     //Check if the old passowrd is matching
-    const isPasswordCorrect = await user.isPasswordCorrect(user.password);
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
 
     // if the password match fails then throw an error
     if(!isPasswordCorrect) {
@@ -313,7 +311,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     }
 
     const user = await User.findByIdAndUpdate(
-        user._id,
+        req.user._id,
         {$set: {username, email}},
         {new: true}
     ).select("-password");
@@ -526,7 +524,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     const user = await User.aggregate([
         {
             $match: {
-                _id: new mongoose.Schema.Types.ObjectId(req.user._id)
+                _id: new mongoose.Types.ObjectId(req.user._id)
             }
         },
         {
