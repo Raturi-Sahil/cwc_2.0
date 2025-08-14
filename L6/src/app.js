@@ -19,9 +19,11 @@ app.use(errorHandler);
 
 // import routes 
 import userRouter from "./routes/user.routes.js"
+import videoRouter from "./routes/video.routes.js"
 
 // declare route
 app.use("/api/v1/users", userRouter);
+app.use("api/v1/video", videoRouter);
 
 
 
